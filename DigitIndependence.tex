@@ -1,0 +1,364 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=30mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  urlcolor=blue!65!black,
+  citecolor=blue!55!black,
+  pdftitle={Digit independence under a common multiplier},
+  pdfauthor={Mathematical idea by Mikhail Katkov}
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Zmod}[1]{\Z/#1\Z}
+\newcommand{\digit}{d}
+\newcommand{\digits}{D}
+\newcommand{\LI}{\operatorname{LI}}
+
+\title{Digit Independence under a Common Multiplier}
+\author{Mathematical idea and construction: Mikhail Katkov\thanks{Weizmann Institute of Science; Institute for Advanced Studies; \href{mailto:mikhail.katkov@gmail.com}{mikhail.katkov@gmail.com}.}\\
+  \small Formalization and exposition developed with the assistance of\\
+  \small ChatGPT 5.6 (OpenAI)  \\
+  \small LLM orcherstration: Nick Velken Krom}
+\date{August 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+For every integer base $p\ge 2$ and every finite set $S$ of distinct positive
+natural numbers, we construct a single multiplier $K$ such that the infinite,
+zero-padded base-$p$ digit vectors of the numbers $aK$, with $a\in S$, are
+linearly independent over $\Zmod p$. The base need not be prime. The proof
+constructs a unit lower-triangular matrix from threshold-crossing digits and
+then realizes its rows as linear projections of digit vectors produced by one
+block-packed multiplier. A Lean formalization accompanies this note.
+\end{abstract}
+
+\section{Digit vectors and the theorem}
+
+Fix a natural-number base $p\ge 2$. For $N,r\in\N$, define the $r$th digit of
+$N$, viewed in $\Zmod p$, by
+\begin{equation}
+  \digit_{p,r}(N)
+  =
+  \left[
+    \left\lfloor \frac{N}{p^r}\right\rfloor
+  \right]_p
+  \in \Zmod p.
+  \label{eq:digit}
+\end{equation}
+Equivalently, this is the ordinary $r$th base-$p$ digit
+$\lfloor N/p^r\rfloor\bmod p$, followed by the canonical map into
+$\Zmod p$.
+
+The infinite, zero-padded digit vector is
+\begin{equation}
+  \digits_p(N)
+  =
+  \bigl(
+    \digit_{p,0}(N),\digit_{p,1}(N),\digit_{p,2}(N),\ldots
+  \bigr)
+  \in (\Zmod p)^{\N}.
+  \label{eq:digit-vector}
+\end{equation}
+
+\begin{theorem}[Digit independence under a common multiplier]
+\label{thm:main}
+Let $p\ge 2$, and let $S\subset\N_{>0}$ be finite. There exists $K\in\N$
+such that the family
+\[
+  \bigl(\digits_p(aK)\bigr)_{a\in S}
+\]
+is linearly independent over $\Zmod p$.
+\end{theorem}
+
+Pairwise distinctness is built into the fact that $S$ is a set. No primality
+assumption is made. Thus Theorem~\ref{thm:main} includes composite $p$, even
+though $\Zmod p$ then has zero divisors.
+
+In Lean the family is indexed by the subtype of elements of a
+\texttt{Finset Nat}. The condition that zero does not belong to the finset
+expresses positivity. The main theorem is named
+\texttt{DigitIndependence.exists\_digits\_linearIndependent}.
+
+\section{Proof}
+
+Write
+\begin{equation}
+  A=\sum_{a\in S}a,
+  \qquad
+  m=A^2+1,
+  \qquad
+  P=p^m.
+  \label{eq:parameters}
+\end{equation}
+Because $p\ge2$, the elementary estimate $x<2^{x+1}$ gives
+\begin{equation}
+  A^2<P.
+  \label{eq:large-P}
+\end{equation}
+
+If $S$ is empty, the assertion is immediate. The construction below also
+handles that case formally. We therefore proceed with the estimates needed
+for elements of $S$.
+
+\subsection{First threshold crossings}
+
+For every $i\in S$, let $q_i$ be the least natural number for which
+\begin{equation}
+  P\le iq_i.
+  \label{eq:crossing}
+\end{equation}
+Such a number exists because $i>0$. Minimality yields
+\begin{equation}
+  i(q_i-1)<P\le iq_i.
+  \label{eq:minimal-crossing}
+\end{equation}
+Moreover $q_i\le P$, because $i\ge1$ implies $P\le iP$.
+
+\subsection{A unit lower-triangular matrix}
+
+Define a square matrix indexed by $S$:
+\begin{equation}
+  B_{a,i}
+  =
+  \digit_{p,m}(aq_i)
+  -
+  \digit_{p,m}\bigl(a(q_i-1)\bigr)
+  \in\Zmod p.
+  \label{eq:B}
+\end{equation}
+
+We first compute its diagonal. From
+Equation~\eqref{eq:minimal-crossing},
+\[
+  P\le iq_i=i(q_i-1)+i<P+i<2P.
+\]
+The final inequality follows from $i\le A<P$. Since $P=p^m$, division by
+$p^m$ shows that
+\[
+  \digit_{p,m}(iq_i)=1,
+  \qquad
+  \digit_{p,m}\bigl(i(q_i-1)\bigr)=0.
+\]
+Consequently,
+\begin{equation}
+  B_{i,i}=1.
+  \label{eq:diagonal}
+\end{equation}
+
+Now suppose $a<i$. From Equation~\eqref{eq:minimal-crossing} we have
+$iq_i<P+i$. Using commutativity of multiplication,
+\begin{align*}
+  i(aq_i)
+  &=a(iq_i)\\
+  &<a(P+i)\\
+  &<(a+1)P\\
+  &\le iP.
+\end{align*}
+The strict middle inequality is equivalent to $ai<P$, which follows from
+$a,i\le A$ and Equation~\eqref{eq:large-P}. The last inequality follows from
+$a+1\le i$. Cancelling the positive factor $i$ gives
+\begin{equation}
+  aq_i<P=p^m.
+  \label{eq:off-diagonal-bound}
+\end{equation}
+The same bound holds for $a(q_i-1)$. Hence both digits in
+Equation~\eqref{eq:B} vanish, and
+\begin{equation}
+  B_{a,i}=0
+  \qquad\text{whenever }a<i.
+  \label{eq:above-zero}
+\end{equation}
+
+After ordering $S$ by the usual order on $\N$,
+Equations~\eqref{eq:diagonal} and~\eqref{eq:above-zero} say that $B$ is lower
+triangular with every diagonal entry equal to one. Therefore
+\begin{equation}
+  \det B=1.
+  \label{eq:det-one}
+\end{equation}
+
+This equality is essential for composite bases. Over a ring with zero
+divisors, a merely nonzero determinant need not imply invertibility. Here the
+determinant is exactly $1$, hence a unit. It follows that $B$ is invertible and
+its rows are linearly independent over $\Zmod p$.
+
+\subsection{Packing all threshold multipliers into one number}
+
+It remains to replace the separate multipliers $q_i$ by one common multiplier
+$K$. Choose an enumeration
+\[
+  S=\{s_0,\ldots,s_{n-1}\}.
+\]
+Choose a block length $L$ such that
+\begin{equation}
+  m<L,
+  \qquad
+  aq_i<p^L
+  \quad\text{for all }a,i\in S.
+  \label{eq:block-bound}
+\end{equation}
+The Lean proof uses the explicit, deliberately generous value
+\begin{equation}
+  L=AP+m+1.
+  \label{eq:L}
+\end{equation}
+Indeed $a\le A$ and $q_i\le P$, so $aq_i\le AP<p^L$.
+
+Pack both $q_i$ and $q_i-1$ into disjoint blocks of $L$ base-$p$ digits:
+\begin{equation}
+  K
+  =
+  \sum_{j=0}^{n-1}q_{s_j}p^{jL}
+  +
+  \sum_{j=0}^{n-1}(q_{s_j}-1)p^{(n+j)L}.
+  \label{eq:K}
+\end{equation}
+Multiplication distributes over this expression:
+\[
+  aK
+  =
+  \sum_{j=0}^{n-1}(aq_{s_j})p^{jL}
+  +
+  \sum_{j=0}^{n-1}a(q_{s_j}-1)p^{(n+j)L}.
+\]
+Condition~\eqref{eq:block-bound} ensures that every coefficient fits in its
+own block. Therefore no carry crosses a block boundary, and
+\begin{align}
+  \digit_{p,jL+m}(aK)
+    &=\digit_{p,m}(aq_{s_j}),
+    \label{eq:first-block}\\
+  \digit_{p,(n+j)L+m}(aK)
+    &=\digit_{p,m}\bigl(a(q_{s_j}-1)\bigr).
+    \label{eq:second-block}
+\end{align}
+
+Define a linear coordinate projection
+\begin{equation}
+  T:(\Zmod p)^{\N}\longrightarrow(\Zmod p)^S
+\end{equation}
+by
+\begin{equation}
+  (Tx)_{s_j}
+  =x_{jL+m}-x_{(n+j)L+m}.
+  \label{eq:T}
+\end{equation}
+Equations~\eqref{eq:B}, \eqref{eq:first-block}, and
+\eqref{eq:second-block} give
+\begin{equation}
+  T\bigl(\digits_p(aK)\bigr)=B_{a,\bullet},
+  \label{eq:T-row}
+\end{equation}
+where $B_{a,\bullet}$ denotes the row of $B$ indexed by $a$.
+
+The rows of $B$ are linearly independent. If the original vectors
+$\digits_p(aK)$ satisfied a linear relation, applying $T$ would give the same
+relation among the rows of $B$. All its coefficients must therefore vanish.
+This proves Theorem~\ref{thm:main}.
+\qed
+
+\begin{remark}[A finite certificate]
+Although the digit vectors are modeled as functions
+$\N\to\Zmod p$, the proof reads only $2|S|$ carefully selected coordinates.
+Thus the construction provides a finite certificate of linear independence.
+\end{remark}
+
+\section{Relation to Mathlib's standard digit representation}
+
+The formalization uses the convenient $\Zmod p$-valued definition
+\[
+  \digit_{p,r}(N)
+  =\left[\left\lfloor N/p^r\right\rfloor\right]_p.
+\]
+Mathlib's standard \texttt{Nat.digits} function returns a finite list of
+natural-number digits. After extending that list by zeros and casting its
+$r$th entry to $\Zmod p$, the two definitions agree, because canonical casting
+to $\Zmod p$ takes the residue modulo $p$. The relevant library statement is
+\texttt{Nat.getD\_digits}. A bridge lemma between these presentations is a
+natural addition to the public API, allowing later results to be rewritten in
+either form without changing the proof construction.
+
+\section{Structure of the Lean formalization}
+
+The formalization is contained in
+\href{run:upload/DigitIndependence(1).lean}{\texttt{DigitIndependence(1).lean}}.
+Its main components are:
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \path{digit} and \path{digits}: one digit and the infinite
+        zero-padded digit vector;
+  \item \path{pack} and \path{packFin}: block packing for lists and finite
+        tuples;
+  \item \path{digit_add_high_block} and \path{digit_tail_block}: isolation and
+        shifting of base-$p$ blocks;
+  \item \path{digit_pack_get} and \path{digit_packFin}: extraction of a digit
+        from a selected block;
+  \item \path{mul_pack} and \path{mul_packFin}: compatibility of packing with
+        multiplication;
+  \item \path{exists_crossing}: existence of the least threshold multiplier
+        $q_i$;
+  \item \path{exists_digits_linearIndependent}: Theorem~\ref{thm:main} for
+        every $p\ge2$;
+  \item {\small\path{exists_digits_linearIndependent_of_prime}}: compatibility
+        corollary for prime bases.
+\end{itemize}
+
+In the last step, the Lean proof constructs the linear map $T$ from
+Equation~\eqref{eq:T}. The rows of the triangular matrix are the images of the
+full digit vectors under $T$. The theorem
+\texttt{LinearIndependent.of\_comp} then lifts linear independence from the
+images to the original family. To cover composite $p$, the proof applies
+\path{Matrix.linearIndependent_cols_of_isUnit} to the transpose of $B$.
+
+\section{Checking the file}
+
+Place the Lean file in a project depending on a compatible recent version of
+mathlib and run
+\begin{center}
+  \texttt{lake env lean 'DigitIndependence(1).lean'}.
+\end{center}
+Before archival or publication, the exact Lean and mathlib versions should be
+pinned in \texttt{lean-toolchain} and \texttt{lakefile.toml}.
+
+\section{Current limitations and possible extensions}
+
+\begin{itemize}[leftmargin=*]
+  \item The bounds for $m$, $L$, and therefore $K$ were chosen for a short
+        elementary proof, not for efficiency.
+  \item The theorem covers every base $p\ge2$, but still uses $\Zmod p$ as the
+        coefficient ring. Separating the digit base from the coefficient ring
+        would require a different public formulation.
+  \item The construction is explicit, but the current theorem states
+        existence rather than exposing an efficient executable algorithm.
+  \item Natural extensions include sharper bounds, a standard
+        \texttt{Nat.digits} corollary, independent base and coefficient ring,
+        and a formalized finite-interpolation consequence.
+\end{itemize}
+
+\section*{License}
+
+This work is licensed under the
+\href{https://creativecommons.org/licenses/by/4.0/}{Creative Commons
+Attribution 4.0 International License} (CC BY 4.0). When reusing the work,
+please attribute the mathematical idea and construction to Mikhail Katkov,
+link to the source and license, and indicate whether changes were made.
+
+\end{document}

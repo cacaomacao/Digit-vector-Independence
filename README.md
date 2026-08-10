@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/1329870895.svg)](https://doi.org/10.5281/zenodo.21874854)
 # Digit independence under a common multiplier
 
 This repository contains a Lean formalization of an elementary theorem about

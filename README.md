@@ -23,7 +23,7 @@ The main Lean theorem is `DigitIndependence.exists_digits_linearIndependent`.
 
 ## Files
 
-- [DigitIndependence(1).lean](upload/DigitIndependence%281%29.lean) contains
+- [DigitIndependence.lean](upload/DigitIndependence%281%29.lean) contains
   the Lean formalization.
 - [DigitIndependence.tex](DigitIndependence.tex) contains the complete
   mathematical statement, proof, explanation of the construction, and a guide

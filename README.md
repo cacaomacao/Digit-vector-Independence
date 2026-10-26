@@ -24,12 +24,12 @@ The main Lean theorem is `DigitIndependence.exists_digits_linearIndependent`.
 
 ## Files
 
-- [DigitIndependence.lean](upload/DigitIndependence%281%29.lean) contains
+- [DigitIndependence.lean](DigitIndependence.lean) contains
   the Lean formalization.
 - [DigitIndependence.tex](DigitIndependence.tex) contains the complete
   mathematical statement, proof, explanation of the construction, and a guide
   to the Lean file.
-- [DigitIndependence.pdf](output/pdf/DigitIndependence.pdf) is the compiled
+- [DigitIndependence.pdf](DigitIndependence.pdf) is the compiled
   version of the LaTeX document.
 
 ## Provenance and use of AI
@@ -44,12 +44,32 @@ review.
 
 ## Checking the Lean file
 
-Place the file in a Lean project depending on a compatible recent version of
-mathlib and run:
+The repository is already a Lake project. It pins Lean `4.32.1` in
+[`lean-toolchain`](lean-toolchain), mathlib `v4.32.1` in
+[`lakefile.toml`](lakefile.toml), and exact dependency revisions in
+[`lake-manifest.json`](lake-manifest.json).
+
+With [elan](https://github.com/leanprover/elan) installed, check a fresh clone:
 
 ```bash
-lake env lean 'DigitIndependence.lean'
+git clone https://github.com/cacaomacao/Digit-vector-Independence.git
+cd Digit-vector-Independence
+lake exe cache get
+lake build
 ```
+
+Elan selects the toolchain from `lean-toolchain`. The first run fetches missing
+dependencies and the compiled mathlib cache; the download can be substantial.
+`lake build` checks the `DigitIndependence` library, the default Lake target.
+
+To check the source file directly after dependencies are available:
+
+```bash
+lake env lean DigitIndependence.lean
+```
+
+The [Lean workflow](.github/workflows/lean.yml) runs the same build on pushes
+and pull requests using the committed toolchain and manifest.
 
 ## License
 
